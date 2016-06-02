@@ -16,18 +16,15 @@ def main():
 
     # Input file
     parser.add_argument('-i', '--input', dest='input', required=True, help='The input fasta')
-    # Output file
-    parser.add_argument('-o', '--output', dest='output', default='./oligotyping.sh', help='The output shell script')
     # Input file
     parser.add_argument('-m', '--map', dest='map', help='The metadata mapping file')
 
     # Parse arguments
     args = parser.parse_args()
     infile = args.input
-    outfile = args.output
     mapfile = args.map
 
-    with open(outfile, 'w') as sh:
+    with open('oligotyping.sh', 'w') as sh:
         # Decompose
         if mapfile:
             decompose_command = "decompose {} -E {} -o oligotyping_analysis\n".format(infile, mapfile)
