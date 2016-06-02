@@ -20,9 +20,9 @@ def main():
     parser = argparse.ArgumentParser(description='replace & transpose matrix')
 
     # Input file
-    parser.add_argument('-i', '--input', dest='input', help='The input file')
+    parser.add_argument('-i', '--input', dest='input', required=True, help='The input file')
     # Output file
-    parser.add_argument('-o', '--output', dest='output', help='The output file')
+    parser.add_argument('-o', '--output', dest='output', required=True, help='The output file')
 
     # Parse arguments
     args = parser.parse_args()
