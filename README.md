@@ -15,7 +15,7 @@ shell script inside of the directory with all the commands to parse the input.
 * Assign taxonomy using QIIME's `assign_taxonomy.py`
 * Convert the transposed `MATRIX-COUNT.txt` to a JSON formatted biom
 * Add the taxa assignments to the biom file
-* If there is a sample mapping file, it will fomat that into a QIIME formatted mapping file
+* If there is a sample mapping file, it will format that into a QIIME formatted mapping file
 
 ## Important output
 * `oligotyping.sh`
