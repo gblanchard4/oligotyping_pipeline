@@ -6,41 +6,26 @@ __author__ = "Gene Blanchard"
 __email__ = "me@geneblanchard.com"
 
 '''
-Run oligotyping and create a biom with taxonomic data
+Prepare Oligotyping Data for QIIME
 '''
 
 
 def main():
     # Argument Parser
-    parser = argparse.ArgumentParser(description='Run oligotyping and create a biom with taxonomic data')
+    parser = argparse.ArgumentParser(description='Prepare Oligotyping Data for QIIME')
 
-    # Input file
-    parser.add_argument('-i', '--input', dest='input', required=True, help='The input fasta')
-    # Input file
-    parser.add_argument('-m', '--map', dest='map', help='The metadata mapping file')
+    # Input Dir
+    parser.add_argument('-i', '--input', dest='input', required=True, help='The input oligotyping directory')
 
     # Parse arguments
     args = parser.parse_args()
-    infile = args.input
-    mapfile = args.map
+    indir = args.input
 
-    with open('oligotyping.sh', 'w') as sh:
-        # Decompose
-        if mapfile:
-            decompose_command = "decompose {} -E {} -o oligotyping_analysis\n".format(infile, mapfile)
-        else:
-            decompose_command = "decompose {}\n".format(infile)
-        sh.write(decompose_command)
+    shell_script = '{}/prepare_oligotyping.sh'.format(indir)
+    with open(shell_script, 'w') as sh:
 
         # Find the output folder
-        oligotype_output_path = "oligotyping_analysis"
-
-        matrix_count = "{}/MATRIX-COUNT.txt".format(oligotype_output_path)
-
-        # Transpose MATRIX-COUNT
-        otu_matrix = "{}/MATRIX-COUNT_T.txt".format(oligotype_output_path)
-        replace_n_transpose_command = "replace_n_transpose.py -i {} -o {}\n".format(matrix_count, otu_matrix)
-        sh.write(replace_n_transpose_command)
+        oligotype_output_path = indir
 
         # Clean Rep Set
         rep_set = "{}/NODE-REPRESENTATIVES.fasta".format(oligotype_output_path)
@@ -63,8 +48,20 @@ def main():
         sh.write(assign_taxonomy_command)
         taxa_assignments = "{}/uclust_assigned_taxonomy/NODE-REPRESENTATIVES.cleaned_tax_assignments.txt".format(oligotype_output_path)
 
+        # Transpose MATRIX-COUNT
+        matrix_count = "{}/MATRIX-COUNT.txt".format(oligotype_output_path)
+        otu_matrix = "{}/MATRIX-COUNT_T.txt".format(oligotype_output_path)
+        replace_n_transpose_command = "replace_n_transpose.py -i {} -o {}\n".format(matrix_count, otu_matrix)
+        sh.write(replace_n_transpose_command)
+        # Format BIOM
         sh.write('biom convert -i {0}/MATRIX-COUNT_T.txt --to-json -o {0}/MATRIX-COUNT_T.json --table-type "OTU table"\n'.format(oligotype_output_path))
         sh.write('biom add-metadata -i {0}/MATRIX-COUNT_T.json -o {0}/MATRIX-COUNT_TAXA.json --observation-metadata-fp {1} --observation-header OTUID,taxonomy,confidence,method --sc-separated taxonomy\n'.format(oligotype_output_path, taxa_assignments))
+
+        # Clean map... maybe
+        map_file = '{}/SAMPLE-MAPPING.txt'.format(oligotype_output_path)
+        if os.path.isfile(map_file):
+            map_file_cleaned = '{}/map.clean.txt'.format(oligotype_output_path)
+            sh.write('clean_oligo_map.py -i map_file -o {}\n'.format(map_file_cleaned))
 
 
 if __name__ == '__main__':
