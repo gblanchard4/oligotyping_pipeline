@@ -27,6 +27,9 @@ def main():
         # Find the output folder
         oligotype_output_path = indir
 
+        # Make a directory to keep our finalized files
+        sh.write("mkdir {}/QIIME_Ready\n".format(oligotype_output_path))
+
         # Clean Rep Set
         rep_set = "{}/NODE-REPRESENTATIVES.fasta".format(oligotype_output_path)
         rep_set_cleaned = "{}/NODE-REPRESENTATIVES.cleaned.fasta".format(oligotype_output_path)
@@ -40,7 +43,7 @@ def main():
         filter_alignment_command = "filter_alignment.py -i {0}/pynast_aligned/NODE-REPRESENTATIVES.cleaned_aligned.fasta -o {0}/pynast_aligned/\n".format(oligotype_output_path)
         sh.write(filter_alignment_command)
         # Make tree
-        make_phylogeny_command = "make_phylogeny.py -i {0}/pynast_aligned/NODE-REPRESENTATIVES.cleaned_aligned_pfiltered.fasta -o {0}/tree.tre\n".format(oligotype_output_path)
+        make_phylogeny_command = "make_phylogeny.py -i {0}/pynast_aligned/NODE-REPRESENTATIVES.cleaned_aligned_pfiltered.fasta -o {0}/QIIME_Ready/tree.tre\n".format(oligotype_output_path)
         sh.write(make_phylogeny_command)
 
         # Assign Taxonomy
@@ -59,7 +62,7 @@ def main():
 
         # Noderize biom
         biom = "{}/MATRIX-COUNT_TAXA.json".format(oligotype_output_path)
-        noderized = "{}/MATRIX-COUNT_TAXANODES.json".format(oligotype_output_path)
+        noderized = "{}/QIIME_Ready/otus.biom".format(oligotype_output_path)
         sh.write('noderize_med_biom.py -i {} -o {}\n'.format(biom, noderized))
 
         # Clean map... maybe
@@ -68,6 +71,9 @@ def main():
             map_file_cleaned = '{}/map.clean.txt'.format(oligotype_output_path)
             sh.write('clean_oligo_map.py -i map_file -o {}\n'.format(map_file_cleaned))
 
-
+        med_params = "summarize_taxa:level 1,2,3,4,5,6,7,8\nplot_taxa_summary:labels Kingdom,Phylum,Class,Order,Family,Genus,Species,Node\n \
+                        alpha_diversity:metrics shannon,simpson,PD_whole_tree,chao1,observed_species\nmultiple_rarefactions:min 100\n \
+                        multiple_rarefactions:max NNN\nmultiple_rarefactions:step NNN\nbeta_diversity_through_plots:seqs_per_sample NNN\n"
+        sh.write('echo "{}" > {}/QIIME_Ready/params.txt'.format(med_params, oligotype_output_path))
 if __name__ == '__main__':
     main()
